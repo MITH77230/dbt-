@@ -22,14 +22,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div>
             <h3 className="mb-4 font-bold text-lg">Quick Links</h3>
             <ul className="space-y-2 text-sm">
-              <li>
-                <button 
-                  onClick={() => onNavigate('AboutDBT')} 
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors text-left"
-                >
-                  About DBT <ExternalLink className="w-3 h-3" />
-                </button>
-              </li>
+            
               <li>
                 <button 
                   onClick={() => onNavigate('helpdesk')} 
