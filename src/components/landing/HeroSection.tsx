@@ -43,13 +43,7 @@ export default function HeroSection() {
             </div>
 
             <div className="flex gap-4">
-              <Button size="lg" className="bg-[#FF9933] hover:bg-[#e68a2e] text-white">
-                Get Started
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-[#002147]">
-                Learn More
-              </Button>
+              
             </div>
           </div>
 
