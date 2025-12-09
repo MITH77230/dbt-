@@ -71,17 +71,17 @@ export default function Header({ onNavigate }: HeaderProps) {
               </div>
             </div>
             <div>
-              <div className="text-sm opacity-90">{t('header.govIndia')}</div>
+              <div className="text-sm opacity-90">{t('govIndia')}</div>
               <div className="text-xl">{t('header.title')}</div>
-              <div className="text-xs opacity-75">{t('header.ministry')}</div>
+              <div className="text-xs opacity-75">{t('ministry')}</div>
             </div>
           </div>
 
           {/* Right: Digital India Logo */}
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-lg">{t('header.digitalIndia')}</div>
-              <div className="text-xs opacity-75">{t('header.powerToEmpower')}</div>
+              <div className="text-lg">{t('digitalIndia')}</div>
+              <div className="text-xs opacity-75">{t('powerToEmpower')}</div>
             </div>
             <div className="bg-white p-2 rounded">
               <div className="w-12 h-12 flex items-center justify-center text-[#002147]">
@@ -112,21 +112,21 @@ export default function Header({ onNavigate }: HeaderProps) {
               className="text-white hover:bg-white/10 rounded-none"
               onClick={() => onNavigate?.('about')}
             >
-              {t('nav.aboutDBT')}
+              {t('aboutDBT')}
             </Button>
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/10 rounded-none"
               onClick={() => onNavigate?.('guidelines')}
             >
-              {t('nav.guidelines')}
+              {t('guidelines')}
             </Button>
             <Button 
               variant="ghost" 
               className="text-white hover:bg-white/10 rounded-none"
               onClick={() => onNavigate?.('contact')}
             >
-              {t('nav.contact')}
+              {t('contact')}
             </Button>
             <Button
               variant="ghost"
@@ -134,7 +134,7 @@ export default function Header({ onNavigate }: HeaderProps) {
               onClick={() => onNavigate?.('helpdesk')}
             >
               <HelpCircle className="w-4 h-4" />
-              {t('nav.helpdesk')}
+              {t('helpdesk')}
             </Button>
           </nav>
         </div>
