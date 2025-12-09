@@ -75,10 +75,7 @@ export default function LoginCards({ onNavigate }: LoginCardsProps) {
                       Login
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
-                    <Button variant="ghost" className="w-full text-[#002147]">
-                      Register / Help
-                      <HelpCircle className="w-4 h-4 ml-2" />
-                    </Button>
+                    
                   </div>
                 </CardContent>
               </Card>
