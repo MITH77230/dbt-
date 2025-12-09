@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin, ExternalLink, FileText } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (page: string) => void;
@@ -18,99 +18,74 @@ export default function Footer({ onNavigate }: FooterProps) {
             </p>
           </div>
 
-          {/* Quick Links (Internal) */}
+          {/* Quick Links (FIXED: Now clickable) */}
           <div>
             <h3 className="mb-4 font-bold text-lg">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <button 
-                  onClick={() => onNavigate('about')} 
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                  onClick={() => onNavigate('AboutDBT')} 
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors text-left"
                 >
-                  About DBT
+                  About DBT <ExternalLink className="w-3 h-3" />
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => onNavigate('helpdesk')} 
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors text-left"
                 >
-                  FAQs & Helpdesk
+                  FAQs & Helpdesk <ExternalLink className="w-3 h-3" />
                 </button>
               </li>
               <li>
                 <button 
                   onClick={() => onNavigate('guidelines')} 
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors text-left"
                 >
-                  Guidelines
+                  Guidelines <ExternalLink className="w-3 h-3" />
                 </button>
               </li>
               <li>
-                {/* Links to the PDF in your public folder */}
+                {/* User Manual stays as a PDF download link */}
                 <a 
                   href="/resources/student-downloads/USERMANUAL.pdf" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
                 >
-                  User Manual <FileText className="w-3 h-3" />
+                  User Manual <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Related Portals (External Real Links) */}
+          {/* Related Portals (External Links) */}
           <div>
             <h3 className="mb-4 font-bold text-lg">Related Portals</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a 
-                  href="https://pfms.nic.in/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
-                >
+                <a href="https://pfms.nic.in/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white flex items-center gap-1">
                   PFMS Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://scholarships.gov.in/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
-                >
-                  National Scholarship Portal <ExternalLink className="w-3 h-3" />
+                <a href="https://scholarships.gov.in/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white flex items-center gap-1">
+                  NSP Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://uidai.gov.in/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
-                >
-                  UIDAI (Aadhaar) <ExternalLink className="w-3 h-3" />
+                <a href="https://uidai.gov.in/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white flex items-center gap-1">
+                  UIDAI Aadhaar <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://www.meity.gov.in/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
-                >
+                <a href="https://www.meity.gov.in/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white flex items-center gap-1">
                   MeitY Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a 
-                  href="https://www.digitalindia.gov.in/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
-                >
+                <a href="https://www.digitalindia.gov.in/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-white flex items-center gap-1">
                   Digital India <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -125,14 +100,14 @@ export default function Footer({ onNavigate }: FooterProps) {
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div>
                   <div className="font-medium text-gray-300">Helpline (Toll Free)</div>
-                  <a href="tel:1800118004" className="text-white hover:underline">1800-11-8004</a>
+                  <div className="text-white">1800-11-8004</div>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-gray-400">
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div>
                   <div className="font-medium text-gray-300">Email Support</div>
-                  <a href="mailto:support@dbtportal.gov.in" className="text-white hover:underline">support@dbtportal.gov.in</a>
+                  <div className="text-white">support@dbtportal.gov.in</div>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-gray-400">
@@ -152,11 +127,11 @@ export default function Footer({ onNavigate }: FooterProps) {
             © 2025 Government of India. All rights reserved. | Designed under Smart India Hackathon Initiative
           </div>
           <div className="flex gap-4 text-sm text-gray-400">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <button className="hover:text-white">Privacy Policy</button>
             <span>|</span>
-            <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
+            <button className="hover:text-white">Terms of Use</button>
             <span>|</span>
-            <a href="#" className="hover:text-white transition-colors">Sitemap</a>
+            <button className="hover:text-white">Sitemap</button>
           </div>
         </div>
 
