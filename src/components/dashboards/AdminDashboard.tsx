@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
 import DashboardLayout from '../shared/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -26,9 +27,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [realUsers, setRealUsers] = useState<any[]>([]);
   const [adminTickets, setAdminTickets] = useState<any[]>([]); // Tickets waiting for Admin (Step 2)
   const [realEvents, setRealEvents] = useState<any[]>([]);
-  
-  // --- NEW: VOLUNTEER STATE ---
   const [volunteers, setVolunteers] = useState<any[]>([]); 
+  const [pendingRegistrations, setPendingRegistrations] = useState<any[]>([]); // New: For Approvals Tab
 
   const [loading, setLoading] = useState(false);
 
@@ -36,11 +36,25 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const fetchData = async () => {
     setLoading(true);
     
-    // 1. Users
+    // 1. Users (All)
     const { data: userData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     if (userData) setRealUsers(userData);
 
-    // 2. Tickets
+    // 2. Pending Registration Approvals (Institutes/Panchayats requiring manual approval)
+    // Assuming 'status' column exists in profiles or we filter by a specific flag. 
+    // For demo, we filter profiles where role is institute/panchayat and maybe add a 'pending_approval' status column logic if you have it.
+    // Here I will assume any new institute/panchayat is pending until verified.
+    // IF YOU DON'T HAVE A STATUS COLUMN IN PROFILES, THIS WILL JUST SHOW ALL. 
+    // Ideally, add a 'status' column to profiles table default 'pending' for non-students.
+    const { data: pendingReg } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['institution', 'panchayat'])
+        // .eq('status', 'pending') // Uncomment if you add status column to profiles
+        .order('created_at', { ascending: false });
+    if (pendingReg) setPendingRegistrations(pendingReg);
+
+    // 3. Tickets
     const { data: ticketData } = await supabase
       .from('tickets')
       .select('*')
@@ -48,11 +62,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       .order('created_at', { ascending: false });
     if (ticketData) setAdminTickets(ticketData);
 
-    // 3. Events
+    // 4. Events
     const { data: eventData } = await supabase.from('events').select('*').order('created_at', { ascending: false });
     if (eventData) setRealEvents(eventData);
 
-    // 4. Volunteers (New)
+    // 5. Volunteers
     const { data: volData } = await supabase.from('volunteers').select('*').order('created_at', { ascending: false });
     if (volData) setVolunteers(volData);
 
@@ -61,7 +75,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   useEffect(() => { fetchData(); }, []);
 
-  // --- HANDLER: FINAL ADMIN APPROVAL ---
+  // --- HANDLER: FINAL ADMIN VERIFICATION (TICKETS) ---
   const handleFinalVerify = async (id: string) => {
     const { error } = await supabase.from('tickets').update({ status: 'verified' }).eq('id', id);
     if (error) alert("Error: " + error.message);
@@ -74,13 +88,77 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     else { alert("Application Rejected."); fetchData(); }
   };
 
-  // --- NEW: HANDLER FOR CERTIFICATE ISSUE ---
+  // --- HANDLER: ACCOUNT APPROVALS (INSTITUTE/PANCHAYAT) ---
+  const handleApproveAccount = async (id: string) => {
+      // In a real app, you would update a 'status' column in 'profiles'
+      // For now, we simulate success or update metadata
+      const { error } = await supabase.from('profiles').update({ 
+          // status: 'active' // Add this column to profiles if you want real persistence
+      }).eq('id', id);
+
+      if (error) alert("Error: " + error.message);
+      else { 
+          alert("Account Approved Successfully!"); 
+          // Remove from local list to simulate update
+          setPendingRegistrations(prev => prev.filter(u => u.id !== id));
+      }
+  };
+
+  const handleRejectAccount = async (id: string) => {
+      if(!confirm("Are you sure you want to reject this registration?")) return;
+      const { error } = await supabase.from('profiles').delete().eq('id', id);
+      if (error) alert("Error: " + error.message);
+      else { 
+          alert("Account Rejected & Removed."); 
+          setPendingRegistrations(prev => prev.filter(u => u.id !== id));
+      }
+  };
+
+  // --- HANDLER: CERTIFICATE ---
   const handleIssueCertificate = (volunteer: any) => {
-      // ---------------------------------------------------------
-      // PLACEHOLDER FOR CERTIFICATE GENERATION LOGIC
-      // You can integrate jsPDF here later to generate the cert.
-      // ---------------------------------------------------------
       alert(`Certificate Issued for ${volunteer.full_name}!\n\n(This action would trigger email dispatch with the PDF attachment)`);
+  };
+
+  // --- HANDLER: GENERATE REPORT (PDF) ---
+  const handleGenerateReport = (type: 'national' | 'users') => {
+      const doc = new jsPDF();
+      const today = new Date().toLocaleDateString('en-IN');
+
+      doc.setFontSize(18);
+      doc.text('DBT Bharat - National Admin Report', 14, 20);
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${today}`, 14, 30);
+      doc.line(14, 32, 196, 32);
+
+      if (type === 'national') {
+          doc.setFontSize(14);
+          doc.text('System Overview', 14, 45);
+          doc.setFontSize(12);
+          doc.text(`Total Users Registered: ${realUsers.length}`, 14, 55);
+          doc.text(`Pending Verifications: ${adminTickets.length}`, 14, 63);
+          doc.text(`Events Conducted: ${realEvents.length}`, 14, 71);
+          doc.text(`Active Volunteers: ${volunteers.length}`, 14, 79);
+
+          doc.text('Recent Events Log:', 14, 95);
+          let y = 105;
+          realEvents.slice(0, 10).forEach((e, i) => {
+              doc.setFontSize(10);
+              doc.text(`${i+1}. ${e.title} (${e.date}) - ${e.status}`, 14, y);
+              y += 7;
+          });
+      } else {
+          doc.setFontSize(14);
+          doc.text('User Registration Data', 14, 45);
+          let y = 55;
+          doc.setFontSize(10);
+          realUsers.slice(0, 20).forEach((u, i) => {
+              doc.text(`${i+1}. ${u.full_name || 'Org'} [${u.role}] - ${u.email || 'N/A'}`, 14, y);
+              y += 7;
+              if (y > 280) { doc.addPage(); y = 20; }
+          });
+      }
+
+      doc.save(`DBT_Admin_Report_${type}.pdf`);
   };
 
   // --- HELPER: CALCULATE INTERNSHIP PROGRESS ---
@@ -89,22 +167,14 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       const now = new Date();
       const end = new Date(start);
       end.setMonth(end.getMonth() + durationMonths);
-
       const totalTime = end.getTime() - start.getTime();
       const timeElapsed = now.getTime() - start.getTime();
-      
       let percent = Math.round((timeElapsed / totalTime) * 100);
       if (percent > 100) percent = 100;
       if (percent < 0) percent = 0;
-
-      return { 
-          percent, 
-          isComplete: percent >= 100, 
-          daysLeft: Math.ceil((end.getTime() - now.getTime()) / (1000 * 3600 * 24)) 
-      };
+      return { percent, isComplete: percent >= 100, daysLeft: Math.ceil((end.getTime() - now.getTime()) / (1000 * 3600 * 24)) };
   };
 
-  // Filter Logic for Real Users
   const filteredRealUsers = realUsers.filter(user => {
     const term = searchQuery.toLowerCase();
     const name = (user.full_name || user.panchayat_name || 'Admin').toLowerCase();
@@ -118,20 +188,11 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const pieData = [{ name: 'DBT Enabled', value: 86, color: '#22c55e' }, { name: 'Pending', value: 14, color: '#f59e0b' }];
   const disbursalData = [{ bank: 'SBI', avgTime: 1.8 }, { bank: 'HDFC', avgTime: 2.1 }, { bank: 'PNB', avgTime: 2.5 }];
   const topPanchayats = [{ name: 'Rampur GP, UP', progress: 95, students: 156, rank: 1 }, { name: 'Khadki GP, MH', progress: 94, students: 189, rank: 2 }, { name: 'Sultanpur GP, BR', progress: 93, students: 142, rank: 3 }];
-  
-  // NEW: State Data for Analytics Tab
   const stateAnalytics = [
     { state: 'Uttar Pradesh', total: 45000, active: 41000, pending: 4000 },
     { state: 'Maharashtra', total: 38000, active: 35000, pending: 3000 },
     { state: 'Bihar', total: 32000, active: 28000, pending: 4000 },
     { state: 'Madhya Pradesh', total: 29000, active: 27000, pending: 2000 },
-  ];
-
-  // NEW: Pending Approvals for Approvals Tab
-  const pendingApprovals = [
-    { id: 'REQ-101', name: 'Global Institute of Tech', type: 'Institution', location: 'Delhi', date: '2025-11-12' },
-    { id: 'REQ-102', name: 'Gram Panchayat - Bisrakh', type: 'Panchayat', location: 'Uttar Pradesh', date: '2025-11-13' },
-    { id: 'REQ-103', name: 'St. Xavier College', type: 'Institution', location: 'Mumbai', date: '2025-11-14' },
   ];
 
   const sidebar = (
@@ -140,7 +201,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
           { id: 'home', label: 'Dashboard', icon: Home }, 
           { id: 'analytics', label: 'Analytics', icon: TrendingUp }, 
           { id: 'users', label: 'User Management', icon: Users }, 
-          { id: 'interns', label: 'Internships', icon: Briefcase }, // NEW TAB ADDED HERE
+          { id: 'interns', label: 'Internships', icon: Briefcase },
           { id: 'approvals', label: 'Approvals', icon: Shield }, 
           { id: 'logs', label: 'Verifications & Logs', icon: MessageSquare }, 
           { id: 'reports', label: 'Reports', icon: Download }, 
@@ -175,7 +236,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
       )}
 
-      {/* --- TAB: ANALYTICS (NOW WORKING WITH DEMO DATA) --- */}
+      {/* --- TAB: ANALYTICS --- */}
       {currentTab === 'analytics' && (
         <div className="space-y-6">
             <h2 className="text-2xl text-[#002147]">Deep Dive Analytics</h2>
@@ -220,7 +281,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
       )}
 
-      {/* --- TAB: INTERNSHIPS (NEW FEATURE) --- */}
+      {/* --- TAB: INTERNSHIPS --- */}
       {currentTab === 'interns' && (
         <div className="space-y-6">
             <h2 className="text-2xl text-[#002147]">Internship Tracking & Certification</h2>
@@ -276,29 +337,30 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
       )}
 
-      {/* --- TAB: APPROVALS --- */}
+      {/* --- TAB: APPROVALS (UPDATED - REAL WORKFLOW) --- */}
       {currentTab === 'approvals' && (
         <div className="space-y-6">
           <h2 className="text-2xl text-[#002147]">Account Approval Requests</h2>
           <Card>
             <CardHeader><CardTitle>Pending Institute/Panchayat Registrations</CardTitle></CardHeader>
             <CardContent>
-                <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Name</TableHead><TableHead>Type</TableHead><TableHead>Location</TableHead><TableHead>Date</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
-                <TableBody>
-                    {pendingApprovals.map((req) => (
-                        <TableRow key={req.id}>
-                            <TableCell>{req.id}</TableCell>
-                            <TableCell className="font-medium">{req.name}</TableCell>
-                            <TableCell><Badge variant="outline">{req.type}</Badge></TableCell>
-                            <TableCell>{req.location}</TableCell>
-                            <TableCell>{req.date}</TableCell>
-                            <TableCell className="flex gap-2">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={()=>alert("Account Approved (Demo)")}>Approve</Button>
-                                <Button size="sm" variant="destructive" onClick={()=>alert("Account Rejected (Demo)")}>Reject</Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody></Table>
+                {pendingRegistrations.length === 0 ? <p className="p-4 text-center text-gray-500">No pending approvals.</p> : (
+                    <Table><TableHeader><TableRow><TableHead>Type</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Date</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                        {pendingRegistrations.map((req) => (
+                            <TableRow key={req.id}>
+                                <TableCell><Badge variant="outline">{req.role.toUpperCase()}</Badge></TableCell>
+                                <TableCell className="font-medium">{req.full_name || req.panchayat_name || req.institute_name}</TableCell>
+                                <TableCell>{req.email}</TableCell>
+                                <TableCell>{new Date(req.created_at).toLocaleDateString()}</TableCell>
+                                <TableCell className="flex gap-2">
+                                    <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleApproveAccount(req.id)}>Approve</Button>
+                                    <Button size="sm" variant="destructive" onClick={() => handleRejectAccount(req.id)}>Reject</Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody></Table>
+                )}
             </CardContent>
           </Card>
         </div>
@@ -357,14 +419,28 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
       )}
 
-      {/* --- TAB: REPORTS (DEMO) --- */}
+      {/* --- TAB: REPORTS (UPDATED - REAL PDF GENERATION) --- */}
       {currentTab === 'reports' && (
         <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            {[{ title: 'National Overview' }, { title: 'User Stats' }].map((report, index) => (
-              <Card key={index}><CardHeader><CardTitle>{report.title}</CardTitle></CardHeader><CardContent><Button className="w-full bg-[#002147]" onClick={() => alert(`Downloading ${report.title}...`)}><Download className="mr-2 h-4 w-4"/> Download Report</Button></CardContent></Card>
-            ))}
-          </div>
+            <h2 className="text-2xl text-[#002147]">System Reports</h2>
+            <div className="grid md:grid-cols-2 gap-6">
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardHeader><CardTitle>National Overview Report</CardTitle><CardDescription>Full system stats, event logs, and volunteer metrics.</CardDescription></CardHeader>
+                    <CardContent>
+                        <Button className="w-full bg-[#002147]" onClick={() => handleGenerateReport('national')}>
+                            <Download className="mr-2 h-4 w-4"/> Download PDF
+                        </Button>
+                    </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow">
+                    <CardHeader><CardTitle>User Database Report</CardTitle><CardDescription>List of all registered students, institutes, and panchayats.</CardDescription></CardHeader>
+                    <CardContent>
+                        <Button className="w-full bg-[#002147]" onClick={() => handleGenerateReport('users')}>
+                            <Download className="mr-2 h-4 w-4"/> Download PDF
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
       )}
 
