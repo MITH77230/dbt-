@@ -112,7 +112,7 @@ export default function Header({ onNavigate }: HeaderProps) {
               className="text-white hover:bg-white/10 rounded-none"
               onClick={() => onNavigate?.('about')}
             >
-              {t('aboutDBT')}
+              {t('AboutDBT')}
             </Button>
             <Button 
               variant="ghost" 
