@@ -2,17 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Button } from '../ui/button';
 import { 
-  FileText, 
-  Download, 
   Users, 
   Building2, 
   MapPin, 
   Shield,
   CheckCircle,
   AlertCircle,
-  BookOpen
+  BookOpen,
+  List
 } from 'lucide-react';
 
 export default function Guidelines() {
@@ -135,13 +133,40 @@ export default function Guidelines() {
     }
   ];
 
-  const downloads = [
-    { name: 'Student Registration Manual', size: '2.5 MB', type: 'PDF' },
-    { name: 'Institution Onboarding Guide', size: '3.1 MB', type: 'PDF' },
-    { name: 'CSV Upload Template', size: '45 KB', type: 'XLSX' },
-    { name: 'Panchayat Handbook', size: '4.2 MB', type: 'PDF' },
-    { name: 'DBT Scheme Guidelines (Hindi)', size: '5.8 MB', type: 'PDF' },
-    { name: 'Frequently Asked Questions', size: '1.2 MB', type: 'PDF' }
+  // --- NEW: DBT SCHEMES LIST (Based on Screenshot) ---
+  const dbtSchemesList = [
+      "Pradhan Mantri Uchchatar Shiksha Protsahan (PM-USP) Central Sector Scheme of Scholarship for College and University students",
+      "Ishan Uday Special Scholarship Scheme for North Eastern Region",
+      "P. G. Scholarship for Professional Courses for SC/ST candidates",
+      "P.G. Indira Gandhi Scholarship For Single Girl Child",
+      "P.G. Scholarship for University Rank Holders",
+      "Junior Research Fellowship in Science, Humanities and Social Sciences",
+      "Swami Vivekananda Single Girl Child Fellowship for Research in Social Sciences",
+      "BSR Fellowship",
+      "Post-Doctoral Fellowship for SC/ST Candidates",
+      "Dr S Radhakrishnan Postdoctoral Fellowship in Humanities and Social Science",
+      "Post Doctoral Fellowship for Women",
+      "Dr D S Kothari Post Doctoral Fellowship",
+      "Emeritus Fellowship",
+      "P.G. Scholarship for GATE/GPAT qualified students for pursuing M.Tech/ M.E./M.Pharma- UGC",
+      "Pragati Scholarship for girls in Degree Colleges",
+      "Pragati Scholarship for girls Diploma Institutes",
+      "Saksham scholarship for differently abled students of Degree Colleges",
+      "Saksham scholarship for differently abled students of Diploma Institutes",
+      "Pradhan Mantri Uchchatar Shiksha Protsahan (PM-USP) Special Scholarship Scheme for Jammu & Kashmir and Ladakh",
+      "QIP for faculty deputed for M.Tech/ Ph.D studies at QIP Centers",
+      "Pradhan Mantri Uchchatar Shiksha Protsahan (PM-USP) Central Sector Interest Subsidy Scheme",
+      "P.G. Scholarship For GATE/GPAT Qualified Students For Pursuing M.Tech/ M.E./M.Pharma - AICTE",
+      "National Doctoral Fellowship (NDF)",
+      "Programme for Apprenticeship",
+      "Indian Knowledge Systems",
+      "AICTE - Swanath Scholarship Scheme - Degree",
+      "AICTE - Swanath Scholarship Scheme - Diploma",
+      "Savitribai Jyotirao Phule Fellowship for Single Girl Child",
+      "National Scholarship for Post-Graduate Studies",
+      "BSR Faculty Fellowship",
+      "HIGHER EDUCATION STATISTICS AND PUBLIC INFORMATION SYSTEM",
+      "PRADHAN MANTRI VIDYALAXMI (PM-Vidyalaxmi) SCHEME"
   ];
 
   return (
@@ -328,33 +353,26 @@ export default function Guidelines() {
           </TabsContent>
         </Tabs>
 
-        {/* Downloads Section */}
-        <Card className="mt-8 dark:bg-gray-800 dark:border-gray-700">
-          <CardHeader>
+        {/* --- NEW: DBT SCHEMES LIST (REPLACED DOWNLOADS) --- */}
+        <Card className="mt-8 dark:bg-gray-800 dark:border-gray-700 border-2 border-blue-100">
+          <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
             <CardTitle className="flex items-center gap-2 dark:text-white">
-              <FileText className="w-6 h-6 text-[#002147] dark:text-blue-400" />
-              Download Resources
+              <List className="w-6 h-6 text-[#002147] dark:text-blue-400" />
+              Department of Higher Education: 32 Schemes
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {downloads.map((file, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center justify-between p-4 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-red-600 dark:text-red-400" />
-                    <div>
-                      <p className="dark:text-white">{file.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{file.type} • {file.size}</p>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="dark:hover:bg-gray-600">
-                    <Download className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+               {dbtSchemesList.map((scheme, index) => (
+                   <div key={index} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                       <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-bold">
+                           {index + 1}
+                       </span>
+                       <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                           {scheme}
+                       </span>
+                   </div>
+               ))}
             </div>
           </CardContent>
         </Card>
