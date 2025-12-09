@@ -17,7 +17,7 @@ export default function StudentRegistrationPage({ onNavigate }: { onNavigate: (p
   const [mobile, setMobile] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [digilockerId, setDigilockerId] = useState('');
+  const [instituteName, setInstituteName] = useState(''); // Changed from DigiLocker ID
   
   // OTP STATE
   const [otp, setOtp] = useState('');
@@ -55,12 +55,15 @@ export default function StudentRegistrationPage({ onNavigate }: { onNavigate: (p
     }
 
     // B. OTP is Good! Now create the profile in database
-    // MAPPING FIX: We map 'fullName' to 'full_name' for the database
+    // MAPPING FIX: We map fields to match the Supabase `profiles` table columns
     const { error: dbError } = await createProfile(user, 'student', {
       aadhaar: aadhaar,
-      full_name: fullName,       // <--- Fixed to match DB
+      full_name: fullName,
       email: email,
-      digilocker_id: digilockerId // <--- Fixed to match DB
+      // We assume your profiles table has an 'institute_name' column or similar.
+      // If not, you might need to add it or store it in 'address' or 'metadata'.
+      // For now, I'll map it to a generic field or pass it directly if your schema supports it.
+      institute_name: instituteName 
     });
 
     setLoading(false);
@@ -133,14 +136,17 @@ export default function StudentRegistrationPage({ onNavigate }: { onNavigate: (p
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+
+                {/* --- NEW FIELD: INSTITUTE NAME --- */}
                 <div className="space-y-2">
-                  <Label htmlFor="digilockerId">DigiLocker ID</Label>
+                  <Label htmlFor="instituteName">Institute / School Name *</Label>
                   <Input
                     type="text"
-                    id="digilockerId"
-                    placeholder="Optional"
-                    value={digilockerId}
-                    onChange={(e) => setDigilockerId(e.target.value)}
+                    id="instituteName"
+                    placeholder="e.g. Delhi Public School"
+                    value={instituteName}
+                    onChange={(e) => setInstituteName(e.target.value)}
+                    required
                   />
                 </div>
 

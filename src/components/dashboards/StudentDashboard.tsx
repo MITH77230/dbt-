@@ -8,7 +8,7 @@ import { Label } from '../ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   Home, BookOpen, CheckCircle, Award, Download, HelpCircle,
-  AlertCircle, PlayCircle, FileText, CreditCard, Building, ShieldCheck, Clock, Activity, RotateCcw, Check, X
+  AlertCircle, PlayCircle, FileText, CreditCard, Building, ShieldCheck, Clock, Activity, RotateCcw, Check, X, ExternalLink, Mail, Phone, MapPin, User
 } from 'lucide-react';
 
 import { supabase } from '../../supabaseClient';
@@ -17,7 +17,6 @@ interface StudentDashboardProps {
   onNavigate: (page: string) => void;
 }
 
-// Verification Status Types matches DB
 type VerificationStatus = 'not_submitted' | 'open' | 'pending_institute' | 'pending_admin' | 'verified' | 'rejected';
 
 export default function StudentDashboard({ onNavigate }: StudentDashboardProps) {
@@ -33,21 +32,22 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
   const [myTicket, setMyTicket] = useState<any>(null);
   const [status, setStatus] = useState<VerificationStatus>('not_submitted');
 
-  // --- QUIZ STATE ---
+  // --- DEMO STATE ---
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
   const [isQuizSubmitted, setIsQuizSubmitted] = useState(false);
+
+  // --- SUPPORT FORM STATE ---
+  const [supportMsg, setSupportMsg] = useState('');
 
   // 1. Fetch User & Ticket Status
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Get Profile
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         setUserProfile(profile);
 
-        // Get Latest Ticket
         const { data: ticket } = await supabase
             .from('tickets')
             .select('*')
@@ -68,23 +68,13 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
   // 2. Submit Verification Request
   const handleApplyVerification = async (e: FormEvent) => {
     e.preventDefault();
-    
-    if (bankAccount !== confirmBankAccount) {
-        alert("Bank Account numbers do not match.");
-        return;
-    }
+    if (bankAccount !== confirmBankAccount) { alert("Bank numbers don't match."); return; }
 
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) { 
-        alert("You must be logged in."); 
-        setLoading(false); 
-        return; 
-    }
+    if (!user) { alert("Please login."); setLoading(false); return; }
 
     const description = `Bank: ${bankAccount} | IFSC: ${ifscCode}`;
-
     const { error } = await supabase.from('tickets').insert([{
       user_id: user.id,
       user_name: userProfile?.full_name || 'Student',
@@ -94,25 +84,24 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     }]);
 
     setLoading(false);
-
-    if (error) {
-      alert("Error submitting application: " + error.message);
-    } else {
-      alert("Application Submitted! Sent to Institute for verification.");
-      window.location.reload();
-    }
+    if (error) alert("Error: " + error.message);
+    else { alert("Submitted!"); window.location.reload(); }
   };
 
-  // 3. Handle Re-Apply
   const handleReapply = () => {
-    const confirmReset = window.confirm("Do you want to edit and re-submit your application?");
-    if (!confirmReset) return;
-    
+    if(!window.confirm("Start new application?")) return;
     setStatus('not_submitted');
     setMyTicket(null);
     setBankAccount('');
     setConfirmBankAccount('');
     setIfscCode('');
+  };
+
+  // Support Form Handler
+  const handleContactSupport = (e: FormEvent) => {
+    e.preventDefault();
+    alert("Support request sent! Ticket ID: #SUP-" + Math.floor(Math.random() * 10000));
+    setSupportMsg('');
   };
 
   // --- QUIZ LOGIC ---
@@ -143,24 +132,19 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     { label: 'Bank Verification List', fileName: 'Banksallverification.pdf', url: '/resources/student-downloads/Banksallverification.pdf' },
   ];
 
-  // Helper for Stepper UI Logic
   const getStepStatus = (stepIndex: number) => {
       if (status === 'rejected') return 'error';
       if (status === 'verified') return 'complete';
-      
       if (stepIndex === 0) return 'complete'; 
-
       if (stepIndex === 1) {
           if (status === 'pending_institute' || status === 'open') return 'current'; 
           if (status === 'pending_admin') return 'complete';    
           return 'waiting';
       }
-
       if (stepIndex === 2) {
           if (status === 'pending_admin') return 'current';
           return 'waiting';
       }
-      
       return 'waiting';
   };
 
@@ -170,6 +154,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
     <nav className="py-4">
       {[
         { id: 'home', label: 'Dashboard', icon: Home },
+        { id: 'profile', label: 'My Profile', icon: User }, // Added Profile
         { id: 'verification', label: 'Verification', icon: ShieldCheck },
         { id: 'awareness', label: 'Awareness', icon: BookOpen },
         { id: 'quiz', label: 'Quiz', icon: Award },
@@ -192,33 +177,85 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
           <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#002147] to-[#004e92] p-8 text-white shadow-lg">
             <div className="relative z-10">
               <h2 className="text-3xl font-bold mb-2">Welcome, {userProfile?.full_name?.split(' ')[0] || "Student"}!</h2>
-              <p className="text-blue-100 max-w-xl">Your central hub for Direct Benefit Transfer. Track your scholarship status and verification in real-time.</p>
+              <p className="text-blue-100 max-w-xl">Your central hub for Direct Benefit Transfer.</p>
             </div>
             <Activity className="absolute right-8 top-1/2 -translate-y-1/2 w-32 h-32 text-white/10" />
           </div>
-
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className={`border-l-4 ${dbtStatus.enabled ? 'border-l-green-500' : 'border-l-yellow-500'}`}><CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle className={dbtStatus.enabled ? "text-green-500" : "text-yellow-500"}/> DBT Status</CardTitle></CardHeader><CardContent><Badge className={dbtStatus.enabled ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}>{dbtStatus.enabled ? 'Enabled' : 'Pending'}</Badge></CardContent></Card>
-            <Card className="border-l-4 border-l-blue-500"><CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="text-blue-500"/> Bank Linked</CardTitle></CardHeader><CardContent><Badge className={dbtStatus.bankLinked ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>{dbtStatus.bankLinked ? 'Submitted' : 'Not Linked'}</Badge></CardContent></Card>
+            <Card className="border-l-4 border-l-green-500"><CardHeader><CardTitle className="flex items-center gap-2"><CheckCircle className="text-green-500"/> DBT Status</CardTitle></CardHeader><CardContent><Badge className="bg-green-100 text-green-800">{status === 'verified' ? 'Enabled' : 'Pending'}</Badge></CardContent></Card>
+            <Card className="border-l-4 border-l-blue-500"><CardHeader><CardTitle className="flex items-center gap-2"><CreditCard className="text-blue-500"/> Bank Linked</CardTitle></CardHeader><CardContent><Badge className={myTicket ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>{myTicket ? 'Submitted' : 'Not Linked'}</Badge></CardContent></Card>
             <Card className="border-l-4 border-l-purple-500"><CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="text-purple-500"/> Aadhaar Seeded</CardTitle></CardHeader><CardContent><Badge className="bg-purple-100 text-purple-800">Verified</Badge></CardContent></Card>
           </div>
+        </div>
+      )}
+
+      {/* NEW PROFILE TAB */}
+      {currentTab === 'profile' && (
+        <div className="space-y-6">
+            <h2 className="text-2xl text-[#002147] font-bold mb-4">My Profile</h2>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Personal Details</CardTitle>
+                    <CardDescription>View your registered information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center gap-4 pb-6 border-b">
+                        <div className="h-20 w-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-2xl font-bold">
+                            {userProfile?.full_name?.charAt(0) || 'S'}
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-800">{userProfile?.full_name || 'Student Name'}</h3>
+                            <p className="text-gray-500">{userProfile?.username || 'No mobile number'}</p>
+                            <Badge variant="outline" className="mt-2 text-blue-700 border-blue-200 bg-blue-50">Verified Student</Badge>
+                        </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">Full Name</Label>
+                            <div className="font-medium text-lg">{userProfile?.full_name || '-'}</div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">Aadhaar Number</Label>
+                            <div className="font-medium text-lg">•••• •••• {userProfile?.aadhaar?.slice(-4) || 'XXXX'}</div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">Mobile Number</Label>
+                            <div className="font-medium text-lg">{userProfile?.username || '-'}</div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">Date of Registration</Label>
+                            <div className="font-medium text-lg">{new Date(userProfile?.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">District</Label>
+                            <div className="font-medium text-lg">{userProfile?.district || 'Not Provided'}</div>
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-gray-500">State</Label>
+                            <div className="font-medium text-lg">{userProfile?.state || 'Not Provided'}</div>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t flex justify-end">
+                        <Button variant="outline" onClick={() => alert("Profile editing is disabled in demo mode.")}>Edit Profile</Button>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
       )}
 
       {/* VERIFICATION TAB */}
       {currentTab === 'verification' && (
         <div className="space-y-6">
-          <div><h2 className="text-2xl text-[#002147] mb-1">Verification Status</h2><p className="text-gray-600">Track your application progress</p></div>
-
+          <h2 className="text-2xl text-[#002147] mb-1">Verification Status</h2>
           {status !== 'not_submitted' ? (
              <Card className="border-2 border-blue-100">
                <CardHeader className="bg-blue-50"><CardTitle>Application Tracking</CardTitle><CardDescription>Tracking ID: {myTicket?.id?.slice(0,8)}</CardDescription></CardHeader>
                <CardContent className="pt-8">
-                 {/* Stepper */}
                  <div className="relative flex justify-between mb-8">
                     <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10"></div>
                     <div className={`absolute top-1/2 left-0 h-1 bg-green-500 -z-10 transition-all duration-500`} style={{width: status === 'verified' ? '100%' : status === 'pending_admin' ? '66%' : '33%'}}></div>
-
                     {['Submitted', 'Institute Check', 'Govt. Approval'].map((label, i) => {
                         const s = getStepStatus(i);
                         return (
@@ -227,50 +264,29 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                                     {s === 'complete' ? <CheckCircle className="w-5 h-5"/> : (s === 'current' ? <Clock className="w-5 h-5"/> : s === 'error' ? <AlertCircle className="w-5 h-5"/> : i+1)}
                                 </div>
                                 <div className="text-sm font-medium">{label}</div>
-                                {s === 'current' && <Badge variant="outline" className="mt-1 bg-yellow-50 text-yellow-700">Pending</Badge>}
                             </div>
                         )
                     })}
                  </div>
-                 
-                 <div className="p-4 rounded border bg-gray-50 border-gray-200 text-gray-800 mb-4">
+                 <div className="p-4 rounded border bg-blue-50 text-blue-900 mb-4">
                     <div className="font-bold mb-1">Current Status:</div> 
                     {status === 'pending_institute' || status === 'open' ? "Waiting for Institute Verification." : status === 'pending_admin' ? "Institute Verified. Waiting for Govt Approval." : status === 'verified' ? "Application Approved!" : "Application Rejected."}
                  </div>
-
-                 {/* RE-APPLY BUTTON */}
-                 <div className="flex justify-end border-t pt-4 mt-4">
-                    <Button variant="outline" className="text-blue-700 border-blue-200 hover:bg-blue-50" onClick={handleReapply}>
-                        <RotateCcw className="w-4 h-4 mr-2"/> Edit & Re-Apply
-                    </Button>
-                 </div>
+                 {status === 'rejected' && <div className="flex justify-end"><Button onClick={handleReapply}><RotateCcw className="w-4 h-4 mr-2"/> Re-Apply</Button></div>}
                </CardContent>
              </Card>
           ) : (
-            <Card className="border-2 border-[#002147]">
-                <CardHeader className="bg-[#E6F0FF]"><CardTitle>Submit Bank Details</CardTitle><CardDescription>For 2-Step Verification (Institute → Admin)</CardDescription></CardHeader>
-                <CardContent className="pt-6">
-                <form onSubmit={handleApplyVerification} className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2"><Label>Bank Account Number *</Label><div className="relative"><CreditCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" /><Input className="pl-10" value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} required /></div></div>
-                        <div className="space-y-2"><Label>Confirm Account Number *</Label><div className="relative"><CreditCard className="absolute left-3 top-3 h-4 w-4 text-gray-400" /><Input className="pl-10" value={confirmBankAccount} onChange={(e) => setConfirmBankAccount(e.target.value)} required /></div></div>
-                        <div className="space-y-2"><Label>IFSC Code *</Label><div className="relative"><Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" /><Input className="pl-10 uppercase" value={ifscCode} onChange={(e) => setIfscCode(e.target.value.toUpperCase())} maxLength={11} required /></div></div>
-                    </div>
-                    <Button type="submit" className="w-full bg-[#002147] hover:bg-[#003366]" disabled={loading}>{loading ? "Submitting..." : "Submit for Verification"}</Button>
-                </form>
-                </CardContent>
-            </Card>
+            <Card className="border-2 border-[#002147]"><CardHeader className="bg-[#E6F0FF]"><CardTitle>Submit Bank Details</CardTitle></CardHeader><CardContent className="pt-6"><form onSubmit={handleApplyVerification} className="space-y-6"><div className="grid gap-4 md:grid-cols-2"><div className="space-y-2"><Label>Bank Account *</Label><Input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} required /></div><div className="space-y-2"><Label>Confirm Account *</Label><Input value={confirmBankAccount} onChange={(e) => setConfirmBankAccount(e.target.value)} required /></div><div className="space-y-2"><Label>IFSC Code *</Label><Input value={ifscCode} onChange={(e) => setIfscCode(e.target.value.toUpperCase())} maxLength={11} required /></div></div><Button type="submit" className="w-full bg-[#002147]" disabled={loading}>{loading ? "Submitting..." : "Submit"}</Button></form></CardContent></Card>
           )}
         </div>
       )}
 
-      {currentTab === 'awareness' && <div className="space-y-6"><Tabs defaultValue="videos"><TabsList><TabsTrigger value="videos">Videos</TabsTrigger></TabsList><TabsContent value="videos"><div className="grid md:grid-cols-2 gap-4">{[1,2].map(i=><Card key={i}><CardContent className="p-8 bg-gray-100 flex justify-center"><PlayCircle className="w-12 h-12 text-gray-400"/></CardContent></Card>)}</div></TabsContent></Tabs></div>}
+      {currentTab === 'awareness' && <div className="space-y-6"><Tabs defaultValue="videos"><TabsList><TabsTrigger value="videos">Videos</TabsTrigger></TabsList><TabsContent value="videos"><div className="grid md:grid-cols-2 gap-4">{[{ title: 'What is DBT?', url: 'https://www.youtube.com/results?search_query=what+is+direct+benefit+transfer+india' }, { title: 'Link Aadhaar', url: 'https://www.youtube.com/results?search_query=how+to+link+aadhaar+to+bank+account+for+dbt' }].map((v,i)=><a key={i} href={v.url} target="_blank" rel="noreferrer" className="block"><Card className="hover:shadow-lg transition-all"><CardContent className="p-6 flex items-center gap-4"><PlayCircle className="w-12 h-12 text-red-600"/><div><h3 className="font-bold">{v.title}</h3><p className="text-sm text-gray-500">Watch on YouTube</p></div><ExternalLink className="w-4 h-4 ml-auto text-gray-400"/></CardContent></Card></a>)}</div></TabsContent></Tabs></div>}
       
-      {/* QUIZ TAB (FULLY FUNCTIONAL) */}
       {currentTab === 'quiz' && (
         <div className="space-y-6">
           <Card className="border-t-4 border-t-[#002147]">
-            <CardHeader><CardTitle>DBT Knowledge Quiz</CardTitle><CardDescription>Test your knowledge about DBT</CardDescription></CardHeader>
+            <CardHeader><CardTitle>DBT Knowledge Quiz</CardTitle><CardDescription>Test your knowledge</CardDescription></CardHeader>
             <CardContent className="pt-6">
                 {!isQuizSubmitted ? (
                     <>
@@ -279,12 +295,7 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                                 <h3 className="font-medium mb-3 text-lg">{index + 1}. {q.question}</h3>
                                 <div className="space-y-2">
                                     {q.options.map((opt) => (
-                                        <div key={opt} 
-                                            className={`p-3 border rounded cursor-pointer transition-colors ${selectedAnswers[index] === opt ? 'bg-[#002147] text-white border-[#002147]' : 'bg-white hover:bg-gray-100'}`}
-                                            onClick={() => setSelectedAnswers(prev => ({...prev, [index]: opt}))}
-                                        >
-                                            {opt}
-                                        </div>
+                                        <div key={opt} className={`p-3 border rounded cursor-pointer transition-colors ${selectedAnswers[index] === opt ? 'bg-[#002147] text-white border-[#002147]' : 'bg-white hover:bg-gray-100'}`} onClick={() => setSelectedAnswers(prev => ({...prev, [index]: opt}))}>{opt}</div>
                                     ))}
                                 </div>
                             </div>
@@ -293,25 +304,8 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
                     </>
                 ) : (
                     <div className="text-center py-8">
-                        <div className="mb-4">
-                            {quizScore! >= 2 ? <CheckCircle className="w-16 h-16 text-green-500 mx-auto"/> : <AlertCircle className="w-16 h-16 text-orange-500 mx-auto"/>}
-                        </div>
+                        <div className="mb-4">{quizScore! >= 2 ? <CheckCircle className="w-16 h-16 text-green-500 mx-auto"/> : <AlertCircle className="w-16 h-16 text-orange-500 mx-auto"/>}</div>
                         <h3 className="text-2xl font-bold mb-2">You scored {quizScore} / {quizQuestions.length}</h3>
-                        <p className="text-gray-500 mb-6">{quizScore! >= 2 ? "Great job! You are DBT aware." : "Keep learning! Check the awareness tab."}</p>
-                        
-                        <div className="text-left max-w-2xl mx-auto mb-8 space-y-4">
-                            {quizQuestions.map((q, i) => (
-                                <div key={i} className={`p-3 rounded border ${selectedAnswers[i] === q.correct ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                                    <p className="font-semibold">{i+1}. {q.question}</p>
-                                    <p className="text-sm mt-1">
-                                        Your Answer: <span className="font-medium">{selectedAnswers[i]}</span> 
-                                        {selectedAnswers[i] === q.correct ? <span className="text-green-600 ml-2">✔ Correct</span> : <span className="text-red-600 ml-2">✘ Wrong</span>}
-                                    </p>
-                                    {selectedAnswers[i] !== q.correct && <p className="text-sm text-gray-600">Correct Answer: {q.correct}</p>}
-                                </div>
-                            ))}
-                        </div>
-
                         <Button onClick={handleRetakeQuiz} variant="outline"><RotateCcw className="w-4 h-4 mr-2"/> Retake Quiz</Button>
                     </div>
                 )}
@@ -321,7 +315,94 @@ export default function StudentDashboard({ onNavigate }: StudentDashboardProps) 
       )}
 
       {currentTab === 'downloads' && <div className="space-y-6"><div className="grid md:grid-cols-2 gap-4">{studentDownloadFiles.map(f=><Card key={f.fileName} className="p-4 flex items-center gap-4 hover:shadow-md"><FileText className="text-red-500"/><div className="flex-1 font-medium">{f.label}</div><Button variant="outline" size="sm" asChild><a href={f.url} download>Download</a></Button></Card>)}</div></div>}
-      {currentTab === 'support' && <div className="grid md:grid-cols-2 gap-6"><Card className="p-6 text-center"><h3 className="text-lg font-bold">Helpdesk</h3><p className="text-2xl text-[#002147]">1800-11-8004</p></Card></div>}
+      
+      {currentTab === 'support' && (
+        <div className="space-y-6">
+            <h2 className="text-2xl text-[#002147] font-bold mb-4">Help & Support</h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+                {/* Contact Channels */}
+                <div className="space-y-4">
+                    <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="bg-blue-100 p-3 rounded-full"><Phone className="text-blue-600 w-6 h-6"/></div>
+                            <div>
+                                <p className="text-sm text-gray-500">Toll-Free Helpline</p>
+                                <p className="text-xl font-bold text-[#002147]">1800-11-8004</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="bg-green-100 p-3 rounded-full"><Mail className="text-green-600 w-6 h-6"/></div>
+                            <div>
+                                <p className="text-sm text-gray-500">Email Support</p>
+                                <p className="text-lg font-bold text-[#002147]">helpdesk@dbt.gov.in</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="bg-orange-100 p-3 rounded-full"><MapPin className="text-orange-600 w-6 h-6"/></div>
+                            <div>
+                                <p className="text-sm text-gray-500">Visit Center</p>
+                                <p className="text-sm font-medium">Find nearest Common Service Center (CSC)</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Contact Form */}
+                <Card className="border-t-4 border-t-[#002147]">
+                    <CardHeader>
+                        <CardTitle>Send us a Message</CardTitle>
+                        <CardDescription>We usually reply within 24 hours.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleContactSupport} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Subject</Label>
+                                <Input placeholder="e.g., Payment Issue, Login Problem" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Message</Label>
+                                <textarea 
+                                    className="w-full min-h-[100px] p-3 rounded-md border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" 
+                                    placeholder="Describe your issue..." 
+                                    value={supportMsg}
+                                    onChange={(e) => setSupportMsg(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <Button type="submit" className="w-full bg-[#002147]">Send Message</Button>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* FAQ Section */}
+            <div className="mt-8">
+                <h3 className="text-xl font-bold text-[#002147] mb-4">Frequently Asked Questions</h3>
+                <div className="space-y-4">
+                    {[
+                        { q: "How long does verification take?", a: "Institute verification typically takes 2-3 working days. Final government approval may take up to 7 days." },
+                        { q: "My application was rejected. What now?", a: "Check the rejection reason in your dashboard. You can correct your details and use the 'Re-Apply' button to submit again." },
+                        { q: "Is Aadhaar linking mandatory?", a: "Yes, for DBT transfers, your bank account must be seeded with your Aadhaar number." },
+                        { q: "Can I change my bank account later?", a: "Yes, but you will need to undergo the verification process again for the new account." }
+                    ].map((faq, i) => (
+                        <Card key={i}>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base font-semibold text-gray-800">{faq.q}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-gray-600">{faq.a}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </div>
+      )}
 
     </DashboardLayout>
   );

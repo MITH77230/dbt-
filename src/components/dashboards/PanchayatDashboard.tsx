@@ -181,8 +181,27 @@ export default function PanchayatDashboard({ onNavigate }: PanchayatDashboardPro
   const [reportPhotos, setReportPhotos] = useState<ReportPhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // --- RESOURCES STATE ---
-  const [panchayatResources] = useState<any[]>([]);
+  // --- RESOURCES STATE (UPDATED WITH PDF PATHS) ---
+  const [panchayatResources] = useState<any[]>([
+    {
+      name: "Panchayat Officer Onboarding Guide",
+      type: "PDF",
+      language: "English",
+      path: "/resources/panchayat-resources/Panchayat Officer Onboarding Guide.pdf"
+    },
+    {
+      name: "About Direct Benefit Transfer",
+      type: "PDF",
+      language: "English",
+      path: "/resources/panchayat-resources/About Direct Benefit Transfer.pdf"
+    },
+    {
+      name: "DBT Schemes Reference",
+      type: "PDF",
+      language: "English",
+      path: "/resources/panchayat-resources/DBTschemes.pdf"
+    }
+  ]);
 
   // 🗺 Village data with coordinates (approx around Varanasi region)
   const chartData: VillageCoverage[] = [
@@ -720,7 +739,7 @@ export default function PanchayatDashboard({ onNavigate }: PanchayatDashboardPro
                   onClick={() => setCurrentTab('events')}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Schedule Event
+                  Schedule New Event
                 </Button>
               </CardTitle>
             </CardHeader>

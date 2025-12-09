@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useLanguage, languages, Language } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import GoogleTranslate from '../GoogleTranslate';
 
 interface HeaderProps {
   onNavigate?: (page: string) => void;
@@ -38,22 +39,7 @@ export default function Header({ onNavigate }: HeaderProps) {
               <span className="text-xs">{theme === 'light' ? 'Dark' : 'Light'}</span>
             </button>
             
-            {/* Language Selector */}
-            <div className="flex items-center gap-2">
-              <Globe className="w-3 h-3" />
-              <Select value={language} onValueChange={(val) => setLanguage(val as Language)}>
-                <SelectTrigger className="bg-transparent border-none h-auto py-0 text-xs text-white focus:ring-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                  {Object.entries(languages).map(([code, name]) => (
-                    <SelectItem key={code} value={code} className="dark:text-white dark:focus:bg-gray-700">
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <GoogleTranslate />
           </div>
         </div>
       </div>
@@ -142,8 +128,8 @@ export default function Header({ onNavigate }: HeaderProps) {
             >
               {t('nav.contact')}
             </Button>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="text-white hover:bg-white/10 rounded-none flex items-center gap-1"
               onClick={() => onNavigate?.('helpdesk')}
             >

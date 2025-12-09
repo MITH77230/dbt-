@@ -7,14 +7,12 @@ import { Input } from '../ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import {
   Home, Users, TrendingUp, Download, Settings, Shield, AlertCircle, CheckCircle,
-  Activity, MapPin, Building2, Clock, Search, X, XCircle, MessageSquare, Calendar
+  Activity, MapPin, Building2, Clock, Search, X, XCircle, MessageSquare, Calendar, Briefcase, Award
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from 'recharts';
 
 // --- IMPORT SUPABASE ---
 import { supabase } from '../../supabaseClient';
-
-const Award = TrendingUp; 
 
 interface AdminDashboardProps {
   onNavigate: (page: string) => void;
@@ -28,14 +26,21 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const [realUsers, setRealUsers] = useState<any[]>([]);
   const [adminTickets, setAdminTickets] = useState<any[]>([]); // Tickets waiting for Admin (Step 2)
   const [realEvents, setRealEvents] = useState<any[]>([]);
+  
+  // --- NEW: VOLUNTEER STATE ---
+  const [volunteers, setVolunteers] = useState<any[]>([]); 
+
   const [loading, setLoading] = useState(false);
 
   // --- FETCH REAL DATA ---
   const fetchData = async () => {
     setLoading(true);
+    
+    // 1. Users
     const { data: userData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
     if (userData) setRealUsers(userData);
 
+    // 2. Tickets
     const { data: ticketData } = await supabase
       .from('tickets')
       .select('*')
@@ -43,8 +48,13 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
       .order('created_at', { ascending: false });
     if (ticketData) setAdminTickets(ticketData);
 
+    // 3. Events
     const { data: eventData } = await supabase.from('events').select('*').order('created_at', { ascending: false });
     if (eventData) setRealEvents(eventData);
+
+    // 4. Volunteers (New)
+    const { data: volData } = await supabase.from('volunteers').select('*').order('created_at', { ascending: false });
+    if (volData) setVolunteers(volData);
 
     setLoading(false);
   };
@@ -62,6 +72,36 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     const { error } = await supabase.from('tickets').update({ status: 'rejected' }).eq('id', id);
     if (error) alert("Error: " + error.message);
     else { alert("Application Rejected."); fetchData(); }
+  };
+
+  // --- NEW: HANDLER FOR CERTIFICATE ISSUE ---
+  const handleIssueCertificate = (volunteer: any) => {
+      // ---------------------------------------------------------
+      // PLACEHOLDER FOR CERTIFICATE GENERATION LOGIC
+      // You can integrate jsPDF here later to generate the cert.
+      // ---------------------------------------------------------
+      alert(`Certificate Issued for ${volunteer.full_name}!\n\n(This action would trigger email dispatch with the PDF attachment)`);
+  };
+
+  // --- HELPER: CALCULATE INTERNSHIP PROGRESS ---
+  const calculateProgress = (startDate: string, durationMonths: number) => {
+      const start = new Date(startDate);
+      const now = new Date();
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + durationMonths);
+
+      const totalTime = end.getTime() - start.getTime();
+      const timeElapsed = now.getTime() - start.getTime();
+      
+      let percent = Math.round((timeElapsed / totalTime) * 100);
+      if (percent > 100) percent = 100;
+      if (percent < 0) percent = 0;
+
+      return { 
+          percent, 
+          isComplete: percent >= 100, 
+          daysLeft: Math.ceil((end.getTime() - now.getTime()) / (1000 * 3600 * 24)) 
+      };
   };
 
   // Filter Logic for Real Users
@@ -96,7 +136,16 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
 
   const sidebar = (
     <nav className="py-4 bg-[#001633]">
-      {[{ id: 'home', label: 'Dashboard', icon: Home }, { id: 'analytics', label: 'Analytics', icon: TrendingUp }, { id: 'users', label: 'User Management', icon: Users }, { id: 'approvals', label: 'Approvals', icon: Shield }, { id: 'logs', label: 'Verifications & Logs', icon: MessageSquare }, { id: 'reports', label: 'Reports', icon: Download }, { id: 'settings', label: 'Settings', icon: Settings }].map((item) => (
+      {[
+          { id: 'home', label: 'Dashboard', icon: Home }, 
+          { id: 'analytics', label: 'Analytics', icon: TrendingUp }, 
+          { id: 'users', label: 'User Management', icon: Users }, 
+          { id: 'interns', label: 'Internships', icon: Briefcase }, // NEW TAB ADDED HERE
+          { id: 'approvals', label: 'Approvals', icon: Shield }, 
+          { id: 'logs', label: 'Verifications & Logs', icon: MessageSquare }, 
+          { id: 'reports', label: 'Reports', icon: Download }, 
+          { id: 'settings', label: 'Settings', icon: Settings }
+      ].map((item) => (
         <button key={item.id} onClick={() => setCurrentTab(item.id)} className={`w-full flex items-center gap-3 px-6 py-3 transition-colors ${currentTab === item.id ? 'bg-[#002147] text-white' : 'text-gray-300 hover:bg-[#002147] hover:text-white'}`}>
           <item.icon className="w-5 h-5" /><span>{item.label}</span>
         </button>
@@ -171,7 +220,63 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
         </div>
       )}
 
-      {/* --- TAB: APPROVALS (NOW WORKING WITH DEMO DATA) --- */}
+      {/* --- TAB: INTERNSHIPS (NEW FEATURE) --- */}
+      {currentTab === 'interns' && (
+        <div className="space-y-6">
+            <h2 className="text-2xl text-[#002147]">Internship Tracking & Certification</h2>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Active DBT Sahayaks</CardTitle>
+                    <CardDescription>Track volunteer progress and issue certificates.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {volunteers.length === 0 ? <p className="text-gray-500 text-center py-6">No active interns found.</p> : (
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>District</TableHead><TableHead>Duration</TableHead><TableHead>Progress (Timeline)</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {volunteers.map((vol) => {
+                                    const { percent, isComplete, daysLeft } = calculateProgress(vol.start_date, vol.duration_months);
+                                    return (
+                                        <TableRow key={vol.id}>
+                                            <TableCell className="font-medium">
+                                                {vol.full_name}<br/>
+                                                <span className="text-xs text-gray-500">{vol.email}</span>
+                                            </TableCell>
+                                            <TableCell>{vol.district}, {vol.state || 'India'}</TableCell>
+                                            <TableCell><Badge variant="outline">{vol.duration_months} Month(s)</Badge></TableCell>
+                                            <TableCell className="w-1/3">
+                                                <div className="space-y-1">
+                                                    <div className="flex justify-between text-xs text-gray-500">
+                                                        <span>Started: {new Date(vol.start_date).toLocaleDateString()}</span>
+                                                        <span>{isComplete ? "Completed" : `${daysLeft} days left`}</span>
+                                                    </div>
+                                                    <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                                                        <div className={`h-full ${isComplete ? 'bg-green-600' : 'bg-blue-600'}`} style={{ width: `${percent}%` }}></div>
+                                                    </div>
+                                                    <div className="text-xs text-right font-bold">{percent}%</div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {isComplete ? (
+                                                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => handleIssueCertificate(vol)}>
+                                                        <Award className="w-4 h-4 mr-2"/> Issue Certificate
+                                                    </Button>
+                                                ) : (
+                                                    <Button size="sm" variant="secondary" disabled>In Progress</Button>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+      )}
+
+      {/* --- TAB: APPROVALS --- */}
       {currentTab === 'approvals' && (
         <div className="space-y-6">
           <h2 className="text-2xl text-[#002147]">Account Approval Requests</h2>

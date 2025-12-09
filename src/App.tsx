@@ -20,6 +20,7 @@ import AdminLoginPage from "./components/pages/AdminLoginPage";
 import StudentRegistrationPage from "./components/pages/StudentRegistrationPage";
 import InstitutionRegistrationPage from "./components/pages/InstitutionRegistrationPage";
 import PanchayatRegistrationPage from "./components/pages/PanchayatRegistrationPage";
+import VolunteerPage from "./components/pages/VolunteerPage"; // <--- IMPORT THIS
 
 type PageType =
   | "home"
@@ -38,7 +39,8 @@ type PageType =
   | "admin-login"
   | "student-registration"
   | "institution-registration"
-  | "panchayat-registration";
+  | "panchayat-registration"
+  | "volunteer"; // <--- ADD THIS
 
 export default function App() {
   const [currentPage, setCurrentPage] =
@@ -76,6 +78,12 @@ export default function App() {
           {currentPage === "guidelines" && <Guidelines />}
           {currentPage === "contact" && <Contact />}
           {currentPage === "helpdesk" && <Helpdesk />}
+          
+          {/* Volunteer Page Route */}
+          {currentPage === "volunteer" && (
+            <VolunteerPage onNavigate={navigateTo} />
+          )}
+
           {currentPage === "landing" && (
             <LandingPage onNavigate={navigateTo} />
           )}

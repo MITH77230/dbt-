@@ -10,7 +10,10 @@ import {
   Award,
   CheckCircle,
   Bell,
-  ArrowRight
+  ArrowRight,
+  Link,
+  Database,
+  Briefcase // Imported Briefcase icon
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -84,22 +87,32 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               Empowering citizens through transparent and efficient Direct Benefit Transfer system. 
               Verify, track, and manage DBT processes seamlessly.
             </p>
-            <div className="flex justify-center gap-4 mt-8">
-              <Button 
-                size="lg" 
-                className="bg-[#FF9933] hover:bg-[#FF9933]/90 text-white"
-                onClick={() => onNavigate('landing')}
+            <div className="flex flex-col items-center mt-8">
+              <div className="flex justify-center gap-4">
+                <Button 
+                  size="lg" 
+                  className="bg-[#FF9933] hover:bg-[#FF9933]/90 text-white"
+                  onClick={() => onNavigate('landing')}
+                >
+                  Access Portal <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="bg-white text-[#002147] hover:bg-gray-100"
+                  onClick={() => onNavigate('about')}
+                >
+                  Learn More
+                </Button>
+              </div>
+              
+              {/* Secondary Volunteer Link in Hero */}
+              <button 
+                onClick={() => onNavigate('volunteer')}
+                className="mt-6 text-blue-200 hover:text-white underline underline-offset-4 text-sm font-medium transition-colors"
               >
-                Access Portal <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="bg-white text-[#002147] hover:bg-gray-100"
-                onClick={() => onNavigate('about')}
-              >
-                Learn More
-              </Button>
+                Interested in social work? Join our Internship Program →
+              </button>
             </div>
           </div>
         </div>
@@ -109,12 +122,12 @@ export default function HomePage({ onNavigate }: HomePageProps) {
       <div className="max-w-7xl mx-auto px-4 -mt-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="dark:bg-gray-800 dark:border-gray-700">
+            <Card key={index} className="dark:bg-gray-800 dark:border-gray-700 shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</p>
-                    <p className="text-3xl mt-2 dark:text-white">{stat.value}</p>
+                    <p className="text-3xl mt-2 dark:text-white font-bold">{stat.value}</p>
                   </div>
                   <stat.icon className={`w-12 h-12 ${stat.color}`} />
                 </div>
@@ -124,28 +137,104 @@ export default function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </div>
 
-      {/* Features Section */}
+      {/* NEW SECTION: Aadhaar Seeding vs DBT Mapping */}
       <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl text-gray-900 dark:text-white mb-4">Portal Features</h2>
+        <div className="text-center mb-10">
+          <h2 className="text-3xl text-gray-900 dark:text-white mb-2">Understand the Difference</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Comprehensive solutions for all stakeholders in the DBT ecosystem
+            Crucial information for scholarship beneficiaries to ensure payment success.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4`}>
-                  <feature.icon className="w-6 h-6" />
+        
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Card 1: Aadhaar Seeding */}
+          <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-all dark:bg-gray-800">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 p-3 rounded-full">
+                  <Link className="w-6 h-6 text-blue-600" />
                 </div>
-                <CardTitle className="dark:text-white">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+                <CardTitle className="text-xl">Aadhaar Seeded Account</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                This simply means your Aadhaar number is updated in your bank account records (KYC).
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>You can have <strong>multiple</strong> accounts seeded with Aadhaar.</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>Allows Aadhaar-based authentication (AePS).</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-red-500 font-medium">
+                  <Shield className="w-4 h-4 mt-0.5" />
+                  <span>Does NOT guarantee scholarship money will come here.</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: DBT Mapping */}
+          <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-all dark:bg-gray-800">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <Database className="w-6 h-6 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">DBT Mapped (NPCI) Account</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                This is the specific account linked to the <strong>NPCI Mapper</strong> to receive government funds.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>Only <strong>ONE</strong> account can be mapped for DBT at a time.</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  <span>Government money <strong>automatically</strong> goes to this account.</span>
+                </li>
+                <li className="flex items-start gap-2 text-sm text-green-600 font-medium">
+                  <Shield className="w-4 h-4 mt-0.5" />
+                  <span>This is REQUIRED for receiving scholarships.</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="bg-gray-100 dark:bg-gray-900 py-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl text-gray-900 dark:text-white mb-4">Portal Features</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Comprehensive solutions for all stakeholders in the DBT ecosystem
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4`}>
+                    <feature.icon className="w-6 h-6" />
+                  </div>
+                  <CardTitle className="dark:text-white">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -190,6 +279,18 @@ export default function HomePage({ onNavigate }: HomePageProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
+                  {/* --- HIGHLIGHTED VOLUNTEER LINK --- */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/40 font-medium"
+                    onClick={() => onNavigate('volunteer')}
+                  >
+                    <Briefcase className="w-4 h-4 mr-2 text-[#FF9933]" />
+                    Volunteer / Internship Program
+                    <Badge className="ml-auto bg-[#FF9933] text-white hover:bg-[#e68a2e] text-[10px] h-5">NEW</Badge>
+                  </Button>
+                  {/* ---------------------------------- */}
+
                   <Button 
                     variant="outline" 
                     className="w-full justify-start dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
