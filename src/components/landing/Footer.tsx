@@ -1,71 +1,116 @@
-import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink, FileText } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigate: (page: string) => void;
+}
+
+export default function Footer({ onNavigate }: FooterProps) {
   return (
     <footer className="bg-[#001633] dark:bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid md:grid-cols-4 gap-8">
+          
           {/* About Section */}
           <div>
-            <h3 className="mb-4">About Portal</h3>
+            <h3 className="mb-4 font-bold text-lg">About Portal</h3>
             <p className="text-sm text-gray-400 leading-relaxed">
               The DBT Awareness & Verification Portal is an initiative under Smart India Hackathon to ensure transparency in Direct Benefit Transfer for students across India.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links (Internal) */}
           <div>
-            <h3 className="mb-4">Quick Links</h3>
+            <h3 className="mb-4 font-bold text-lg">Quick Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  About DBT <ExternalLink className="w-3 h-3" />
-                </a>
+                <button 
+                  onClick={() => onNavigate('about')} 
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  About DBT
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  FAQs <ExternalLink className="w-3 h-3" />
-                </a>
+                <button 
+                  onClick={() => onNavigate('helpdesk')} 
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  FAQs & Helpdesk
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  Guidelines <ExternalLink className="w-3 h-3" />
-                </a>
+                <button 
+                  onClick={() => onNavigate('guidelines')} 
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  Guidelines
+                </button>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  User Manual <ExternalLink className="w-3 h-3" />
+                {/* Links to the PDF in your public folder */}
+                <a 
+                  href="/resources/student-downloads/USERMANUAL.pdf" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  User Manual <FileText className="w-3 h-3" />
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Related Portals */}
+          {/* Related Portals (External Real Links) */}
           <div>
-            <h3 className="mb-4">Related Portals</h3>
+            <h3 className="mb-4 font-bold text-lg">Related Portals</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
+                <a 
+                  href="https://pfms.nic.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
                   PFMS Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  NSP Portal <ExternalLink className="w-3 h-3" />
+                <a 
+                  href="https://scholarships.gov.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  National Scholarship Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
-                  UIDAI Aadhaar <ExternalLink className="w-3 h-3" />
+                <a 
+                  href="https://uidai.gov.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  UIDAI (Aadhaar) <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
+                <a 
+                  href="https://www.meity.gov.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
                   MeitY Portal <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white flex items-center gap-1">
+                <a 
+                  href="https://www.digitalindia.gov.in/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                >
                   Digital India <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -74,20 +119,20 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="mb-4">Contact Us</h3>
+            <h3 className="mb-4 font-bold text-lg">Contact Us</h3>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2 text-gray-400">
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div>
-                  <div>Helpline (Toll Free)</div>
-                  <div className="text-white">1800-11-8004</div>
+                  <div className="font-medium text-gray-300">Helpline (Toll Free)</div>
+                  <a href="tel:1800118004" className="text-white hover:underline">1800-11-8004</a>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-gray-400">
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div>
-                  <div>Email Support</div>
-                  <div className="text-white">support@dbtportal.gov.in</div>
+                  <div className="font-medium text-gray-300">Email Support</div>
+                  <a href="mailto:support@dbtportal.gov.in" className="text-white hover:underline">support@dbtportal.gov.in</a>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-gray-400">
@@ -107,11 +152,11 @@ export default function Footer() {
             © 2025 Government of India. All rights reserved. | Designed under Smart India Hackathon Initiative
           </div>
           <div className="flex gap-4 text-sm text-gray-400">
-            <a href="#" className="hover:text-white">Privacy Policy</a>
+            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
             <span>|</span>
-            <a href="#" className="hover:text-white">Terms of Use</a>
+            <a href="#" className="hover:text-white transition-colors">Terms of Use</a>
             <span>|</span>
-            <a href="#" className="hover:text-white">Sitemap</a>
+            <a href="#" className="hover:text-white transition-colors">Sitemap</a>
           </div>
         </div>
 
